@@ -4,7 +4,7 @@
 // Contract定義のエントリーポイント
 #[ink::contract]
 mod erc721 {
-    use ink::storage::Mapping; // inkからMapping structをimport.スマートコントラクト用に用意されているのでMapにはこれを使う。
+    use ink::{primitives::AccountId, storage::Mapping}; // inkからMapping structをimport.スマートコントラクト用に用意されているのでMapにはこれを使う。
     use scale::{Decode, Encode}; //
 
     pub type TokenId = u32; // TokenId
@@ -19,7 +19,8 @@ mod erc721 {
         operator_approvals: Mapping<(AccountId, AccountId), ()>,
     }
 
-    #[derive(Encode, Decode, Debug, PartialEq, Eq, Clone, Copy)]
+    // エラー定義
+    #[derive(Encode, Decode, Debug, PartialEq, Eq, Clone, Copy)] // いろいろtraitを実装
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub enum Error {
         NotOwner,
@@ -31,7 +32,41 @@ mod erc721 {
         NotAllowed,
     }
 
+    // イベント定義
+
+    // トークンがTransferされたときのイベント
+    #[ink(event)]
+    pub struct Transfer {
+        #[ink(topic)] // indexedを追加
+        from: Option<AccountId>,
+        #[ink(topic)]
+        to: Option<AccountId>,
+        #[ink(topic)]
+        id: TokenId,
+    }
+
+    #[ink(event)]
+    pub struct Approval {
+        #[ink(topic)]
+        from: AccountId,
+        #[ink(topic)]
+        to: AccountId,
+        #[ink(topic)]
+        id: TokenId,
+    }
+
+    #[ink(event)]
+    pub struct ApprovalForAll {
+        #[ink(topic)]
+        owner: AccountId,
+        #[ink(topic)]
+        operator: AccountId,
+        approved: bool,
+    }
+
+    // コントラクトの実装
     impl Erc721 {
+        // コンストラクタ
         #[ink(constructor)]
         pub fn new() -> Self {
             Default::default()
