@@ -8,8 +8,7 @@ cargo contract new erc721
 
 ## ローカルでノード起動
 
-リリースノートからダウンロードして/usr/local/binに移しとく。
-https://github.com/AstarNetwork/Astar/releases
+[リリースノート](https://github.com/AstarNetwork/Astar/releases)からダウンロードして/usr/local/binに移しとく。
 
 ```
 astar-collator --dev --tmp
