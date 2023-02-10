@@ -4,6 +4,7 @@
 // Contract定義のエントリーポイント
 #[ink::contract]
 mod erc721 {
+    use ink::prelude::string::{String, ToString};
     use ink::storage::Mapping; // inkからMapping structをimport.スマートコントラクト用に用意されているのでMapにはこれを使う。
     use scale::{Decode, Encode};
 
@@ -96,7 +97,7 @@ mod erc721 {
 
         #[ink(message)]
         pub fn token_uri(&self) -> String {
-            String::from(TOKEN_URI) + &self.token_id.to_string()
+            String::from(TOKEN_URI) + &ToString::to_string(&self.token_id)
         }
 
         // トークンの所有者を取得する
