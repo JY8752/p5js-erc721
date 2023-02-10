@@ -5,9 +5,12 @@
 #[ink::contract]
 mod erc721 {
     use ink::storage::Mapping; // inkからMapping structをimport.スマートコントラクト用に用意されているのでMapにはこれを使う。
-    use scale::{Decode, Encode}; //
+    use scale::{Decode, Encode};
 
     pub type TokenId = u32; // TokenId
+
+    // metadata.jsonのあるとこ
+    const TOKEN_URI: &str = "https://example.com/";
 
     // ストレージ定義
     #[ink(storage)]
@@ -17,6 +20,7 @@ mod erc721 {
         token_approvals: Mapping<TokenId, AccountId>,
         owned_tokens_count: Mapping<AccountId, u32>,
         operator_approvals: Mapping<(AccountId, AccountId), ()>,
+        token_id: TokenId,
     }
 
     // エラー定義
@@ -70,7 +74,13 @@ mod erc721 {
         // コンストラクタ
         #[ink(constructor)]
         pub fn new() -> Self {
-            Default::default()
+            Erc721 {
+                token_owner: Default::default(),
+                token_approvals: Default::default(),
+                owned_tokens_count: Default::default(),
+                operator_approvals: Default::default(),
+                token_id: 1, // 最初は１から
+            }
         }
 
         // #[ink(message)]
@@ -82,6 +92,11 @@ mod erc721 {
         #[ink(message)]
         pub fn balance_of(&self, owner: AccountId) -> u32 {
             self.balance_of_or_zero(&owner)
+        }
+
+        #[ink(message)]
+        pub fn token_uri(&self) -> String {
+            String::from(TOKEN_URI) + &self.token_id.to_string()
         }
 
         // トークンの所有者を取得する
@@ -138,8 +153,9 @@ mod erc721 {
 
         // mint
         #[ink(message)]
-        pub fn mint(&mut self, id: TokenId) -> Result<(), Error> {
+        pub fn mint(&mut self) -> Result<(), Error> {
             let caller = self.env().caller();
+            let id = self.token_id;
             self.add_token_to(&caller, id)?;
 
             // イベント発火
@@ -148,6 +164,10 @@ mod erc721 {
                 to: Some(caller),
                 id,
             });
+
+            // インクリメント
+            self.token_id += 1;
+
             Ok(())
         }
 
@@ -322,8 +342,6 @@ mod erc721 {
 
             Ok(())
         }
-
-        // fn approve_for(to: AccountId, id: TokenId) -> Result<(), Error> {}
 
         fn approve_for_all(&mut self, to: AccountId, approved: bool) -> Result<(), Error> {
             let caller = self.env().caller();
