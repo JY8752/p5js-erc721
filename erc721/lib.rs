@@ -374,4 +374,24 @@ mod erc721 {
             self.operator_approvals.contains((&owner, &operator))
         }
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[ink::test]
+        fn mint_works() {
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            let mut erc721 = Erc721::new();
+
+            // まだトークンがmintされていないので所有者はいない
+            assert_eq!(erc721.owner_of(1), None);
+            // デフォルトユーザーでまだmintしていないのでトークンをもっていない
+            assert_eq!(erc721.balance_of(accounts.alice), 0);
+            // mint成功するはず
+            assert_eq!(erc721.mint(), Ok(()));
+            // mintしたのでトークンを所有しているはず
+            assert_eq!(erc721.balance_of(accounts.alice), 1);
+        }
+    }
 }
